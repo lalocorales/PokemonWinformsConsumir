@@ -19,34 +19,52 @@ namespace PokemonWinformsConsumir.Service
         public ApiService()
         {
             _httpClient = new HttpClient();
-            _httpClient.BaseAddress = new Uri("https://localhost:7208/");
+            _httpClient.BaseAddress = new Uri("https://10.0.0.227:7208/");
         }
 
-        public async Task<bool> LoginAsync(string username, string password)
-        {
-            var loginData = new LoginRequest { Username = username, Password = password };
-            var json = JsonSerializer.Serialize(loginData);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
+       public async Task<bool> LoginAsync(string username, string password)
+{
+    var loginData = new LoginRequest { Username = username, Password = password };
+    var json = JsonSerializer.Serialize(loginData);
+    var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var response = await _httpClient.PostAsync("api/auth/login", content);
-            if (response.IsSuccessStatusCode)
-            {
-                var responseBody = await response.Content.ReadAsStringAsync();
-                var auth = JsonSerializer.Deserialize<AuthResponse>(responseBody, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+    var handler = new HttpClientHandler
+    {
+        ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => true
+    };
 
-                _token = auth?.Token ?? string.Empty;
+    using var client = new HttpClient(handler);
 
-                return !string.IsNullOrEmpty(_token);
-            }
+    // Asegúrate de usar la URL completa
+    var response = await client.PostAsync("https://10.0.0.227:7208/api/auth/login", content);
 
-            return false;
-        }
+    if (response.IsSuccessStatusCode)
+    {
+        var responseBody = await response.Content.ReadAsStringAsync();
+        var auth = JsonSerializer.Deserialize<AuthResponse>(responseBody, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+        _token = auth?.Token ?? string.Empty;
+
+        return !string.IsNullOrEmpty(_token);
+    }
+
+    return false;
+}
 
         public async Task<List<Pokemon>> GetPokemonsAsync()
         {
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _token);
+            var handler = new HttpClientHandler
+            {
+                ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => true
+            };
 
-            var response = await _httpClient.GetAsync("api/pokemons");
+            using var client = new HttpClient(handler);
+
+            // Asegúrate de usar la URL completa de la API
+            client.BaseAddress = new Uri("https://10.0.0.227:7208/");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _token);
+
+            var response = await client.GetAsync("api/pokemons");
 
             if (!response.IsSuccessStatusCode)
                 return new List<Pokemon>();
@@ -56,6 +74,7 @@ namespace PokemonWinformsConsumir.Service
 
             return pokemons ?? new List<Pokemon>();
         }
+
 
     }
 }
