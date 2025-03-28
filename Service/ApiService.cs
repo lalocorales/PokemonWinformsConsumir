@@ -59,8 +59,6 @@ namespace PokemonWinformsConsumir.Service
             };
 
             using var client = new HttpClient(handler);
-
-            // Asegúrate de usar la URL completa de la API
             client.BaseAddress = new Uri("https://10.0.0.227:7208/");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _token);
 
