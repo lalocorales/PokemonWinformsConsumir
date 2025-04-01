@@ -36,9 +36,9 @@ namespace PokemonWinformsConsumir.Service
     using var client = new HttpClient(handler);
 
     // Asegúrate de usar la URL completa
-    var response = await client.PostAsync("https://10.0.0.227:7208/api/auth/login", content);
-
-    if (response.IsSuccessStatusCode)
+    var response = await client.PostAsync("https://localhost:7208/api/auth/login", content);
+         //   var response = await client.PostAsync("https://10.0.0.227:7208/api/auth/login", content);
+            if (response.IsSuccessStatusCode)
     {
         var responseBody = await response.Content.ReadAsStringAsync();
         var auth = JsonSerializer.Deserialize<AuthResponse>(responseBody, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
@@ -59,10 +59,11 @@ namespace PokemonWinformsConsumir.Service
             };
 
             using var client = new HttpClient(handler);
-            client.BaseAddress = new Uri("https://10.0.0.227:7208/");
+            client.BaseAddress = new Uri("https://localhost:7208/");
+           // client.BaseAddress = new Uri("https://10.0.0.227:7208/");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _token);
 
-            var response = await client.GetAsync("api/pokemons");
+            var response = await client.GetAsync("api/v1/pokemons");
 
             if (!response.IsSuccessStatusCode)
                 return new List<Pokemon>();
